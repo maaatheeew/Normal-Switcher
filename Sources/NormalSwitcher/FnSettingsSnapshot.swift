@@ -5,4 +5,3 @@ struct FnSettingsSnapshot: Codable, Equatable {
     let effectiveAction: Int
     let languageIndicator: Int?
 }
-
