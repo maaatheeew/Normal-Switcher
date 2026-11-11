@@ -16,9 +16,9 @@ struct SystemFnActionTests {
         let domain = "NormalSwitcher.Tests.\(UUID().uuidString)"
         guard let defaults = UserDefaults(suiteName: domain) else { fatalError("Test preferences unavailable") }
         defer { defaults.removePersistentDomain(forName: domain) }
-        let takeover = FnSettingsSnapshot(storedAction: 0, effectiveAction: 0, languageIndicator: nil)
+        let takeover = FnSettingsSnapshot(storedAction: 0, effectiveAction: 0)
         for value in [0, 1, 2, 3] {
-            let original = FnSettingsSnapshot(storedAction: value, effectiveAction: value, languageIndicator: nil)
+            let original = FnSettingsSnapshot(storedAction: value, effectiveAction: value)
             let access = FakeFnSettings(original)
             let controller = SystemFnAction(access: access, defaults: defaults)
             controller.restore()
@@ -31,14 +31,14 @@ struct SystemFnActionTests {
             controller.restore()
             precondition(access.writes.count == 2, "Repeated off has no side effect")
         }
-        let absent = FnSettingsSnapshot(storedAction: nil, effectiveAction: 1, languageIndicator: 1)
+        let absent = FnSettingsSnapshot(storedAction: nil, effectiveAction: 1)
         let access = FakeFnSettings(absent)
         let first = SystemFnAction(access: access, defaults: defaults)
         first.takeOver()
         let afterCrash = SystemFnAction(access: access, defaults: defaults)
         afterCrash.recover()
         precondition(access.current == absent, "Recover missing preference and actual pre-existing behavior")
-        let changed = FnSettingsSnapshot(storedAction: 3, effectiveAction: 3, languageIndicator: 0)
+        let changed = FnSettingsSnapshot(storedAction: 3, effectiveAction: 3)
         access.current = changed
         afterCrash.takeOver()
         afterCrash.restore()

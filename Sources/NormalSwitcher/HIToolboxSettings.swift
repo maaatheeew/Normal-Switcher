@@ -5,7 +5,6 @@ import Darwin
 final class HIToolboxSettings: FnSettingsAccess {
     private let domain = "com.apple.HIToolbox" as CFString
     private let actionKey = "AppleFnUsageType" as CFString
-    private let indicatorKey = "TSMLanguageIndicatorEnabled" as CFString
 
     func read() -> FnSettingsSnapshot {
         let action = value(actionKey, domain: domain)
@@ -15,26 +14,15 @@ final class HIToolboxSettings: FnSettingsAccess {
                 effective = Int(unsafeBitCast(address, to: (@convention(c) () -> Int32).self)())
             }
         }
-        return FnSettingsSnapshot(storedAction: action, effectiveAction: effective, languageIndicator: value(indicatorKey, domain: kCFPreferencesAnyApplication))
+        return FnSettingsSnapshot(storedAction: action, effectiveAction: effective)
     }
 
     func apply(_ snapshot: FnSettingsSnapshot) {
-        let previousIndicator = value(indicatorKey, domain: kCFPreferencesAnyApplication)
         write(actionKey, domain: domain, value: snapshot.storedAction)
         withLibrary { handle in
             if let address = dlsym(handle, "TISUpdateFnUsageType") {
                 unsafeBitCast(address, to: (@convention(c) (Int32) -> Void).self)(Int32(snapshot.effectiveAction))
             }
-        }
-        write(indicatorKey, domain: kCFPreferencesAnyApplication, value: snapshot.languageIndicator)
-        if previousIndicator != snapshot.languageIndicator {
-            // This system helper caches the indicator setting; it restarts on demand.
-            let helper = Process()
-            helper.executableURL = URL(fileURLWithPath: "/usr/bin/killall")
-            helper.arguments = ["TextInputMenuAgent"]
-            helper.standardOutput = FileHandle.nullDevice
-            helper.standardError = FileHandle.nullDevice
-            try? helper.run()
         }
     }
 

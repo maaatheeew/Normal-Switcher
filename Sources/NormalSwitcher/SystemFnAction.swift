@@ -27,7 +27,7 @@ final class SystemFnAction {
         defaults.set(encoded, forKey: recoveryKey)
         defaults.synchronize()
         original = saved
-        access.apply(FnSettingsSnapshot(storedAction: 0, effectiveAction: 0, languageIndicator: saved.languageIndicator))
+        access.apply(FnSettingsSnapshot(storedAction: 0, effectiveAction: 0))
     }
 
     func restore() {
