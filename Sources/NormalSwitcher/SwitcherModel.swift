@@ -76,9 +76,6 @@ final class SwitcherModel: ObservableObject {
         needsKeyboardAccess = true
         let options = ["AXTrustedCheckOptionPrompt": true] as CFDictionary
         _ = AXIsProcessTrustedWithOptions(options)
-        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
-            NSWorkspace.shared.open(url)
-        }
         waitForPermission()
     }
 
