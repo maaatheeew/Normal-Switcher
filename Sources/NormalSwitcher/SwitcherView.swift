@@ -27,11 +27,6 @@ struct SwitcherView: View {
                         Text("Normal Switcher 1.0")
                         Text("By Matthew Avgul")
                         Divider()
-                        Picker("Appearance", selection: $model.appearance) {
-                            Text("System").tag("system")
-                            Text("Light").tag("light")
-                            Text("Dark").tag("dark")
-                        }
                         Button("Source on GitHub", systemImage: "chevron.left.forwardslash.chevron.right", action: model.openSource)
                     } label: {
                         Image(systemName: "ellipsis").frame(width: 24, height: 18)

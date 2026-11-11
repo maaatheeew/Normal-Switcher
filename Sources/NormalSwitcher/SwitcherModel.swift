@@ -9,7 +9,6 @@ final class SwitcherModel: ObservableObject {
     @Published var fnEnabled = false { didSet { fnToggleChanged() } }
     @Published var needsKeyboardAccess = false
     @Published var launchAtLogin = false
-    @Published var appearance = "system" { didSet { applyAppearance() } }
     @Published var notice: String?
     var statusChanged: (() -> Void)?
     private let catalog = LayoutCatalog()
@@ -22,13 +21,11 @@ final class SwitcherModel: ObservableObject {
 
     init() {
         launchAtLogin = [.enabled, .requiresApproval].contains(SMAppService.mainApp.status)
-        appearance = UserDefaults.standard.string(forKey: "appearance") ?? "system"
         catalog.changed = { [weak self] in self?.refresh() }
         refresh()
     }
 
     func start() {
-        applyAppearance()
         systemAction.recover()
         let listener = FnListener(catalog: catalog)
         self.listener = listener
@@ -140,15 +137,6 @@ final class SwitcherModel: ObservableObject {
                 guard let self, self.pendingEnable else { return }
                 if AXIsProcessTrusted() { self.enable(); return }
             }
-        }
-    }
-
-    private func applyAppearance() {
-        UserDefaults.standard.set(appearance, forKey: "appearance")
-        switch appearance {
-        case "light": NSApp.appearance = NSAppearance(named: .aqua)
-        case "dark": NSApp.appearance = NSAppearance(named: .darkAqua)
-        default: NSApp.appearance = nil
         }
     }
 
