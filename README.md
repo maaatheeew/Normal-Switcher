@@ -20,7 +20,7 @@ On first enabling **Switch with Fn**, macOS asks for Accessibility access (calle
 
 If access is missing, an inline **Allow access** action appears during setup. Until permission is granted, the app leaves the system Fn action unchanged. Secure Input (for example, password fields) can prevent global key monitoring.
 
-The initial release is ad-hoc signed, not Apple-notarized. macOS may require you to allow opening it in Privacy & Security.
+The initial release is ad-hoc signed, not Apple-notarized. Rebuilding or updating an ad-hoc signed copy may require approving Accessibility access again. macOS may require you to allow opening it in Privacy & Security.
 
 ## Build
 
