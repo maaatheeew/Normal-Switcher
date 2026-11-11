@@ -12,6 +12,7 @@ final class SwitcherModel: ObservableObject {
     @Published var notice: String?
     var statusChanged: (() -> Void)?
     private let catalog = LayoutCatalog()
+    private let loginItems = LoginItemManager()
     private let systemAction = SystemFnAction(access: HIToolboxSettings())
     private var listener: FnListener?
     private var isRunning = false
@@ -20,7 +21,7 @@ final class SwitcherModel: ObservableObject {
     private var permissionWait: Task<Void, Never>?
 
     init() {
-        launchAtLogin = [.enabled, .requiresApproval].contains(SMAppService.mainApp.status)
+        launchAtLogin = loginItems.isEnabled
         catalog.changed = { [weak self] in self?.refresh() }
         refresh()
     }
@@ -44,6 +45,7 @@ final class SwitcherModel: ObservableObject {
     }
 
     func refresh() {
+        launchAtLogin = loginItems.isEnabled
         layouts = catalog.layouts()
         selectedID = catalog.selectedID() ?? ""
         statusChanged?()
@@ -54,18 +56,17 @@ final class SwitcherModel: ObservableObject {
     }
 
     func updateLoginItem() {
-        let status = SMAppService.mainApp.status
+        let status = loginItems.status
         if launchAtLogin == (status == .enabled || status == .requiresApproval) { return }
         do {
-            if launchAtLogin { try SMAppService.mainApp.register() }
-            else { try SMAppService.mainApp.unregister() }
-            if SMAppService.mainApp.status == .requiresApproval {
+            let result = try loginItems.setEnabled(launchAtLogin)
+            if result == .requiresApproval {
                 notice = "Allow Normal Switcher in Login Items to launch automatically."
                 SMAppService.openSystemSettingsLoginItems()
             }
-            launchAtLogin = [.enabled, .requiresApproval].contains(SMAppService.mainApp.status)
+            launchAtLogin = loginItems.isEnabled
         } catch {
-            launchAtLogin = SMAppService.mainApp.status == .enabled
+            launchAtLogin = loginItems.isEnabled
             notice = "Could not update Login Items. Try again in System Settings."
         }
     }
@@ -77,14 +78,6 @@ final class SwitcherModel: ObservableObject {
         let options = ["AXTrustedCheckOptionPrompt": true] as CFDictionary
         _ = AXIsProcessTrustedWithOptions(options)
         waitForPermission()
-    }
-
-    func cancelAccessRequest() {
-        pendingEnable = false
-        permissionWait?.cancel()
-        needsKeyboardAccess = false
-        UserDefaults.standard.set(false, forKey: "fnEnabled")
-        displayEnabled(false)
     }
 
     private func fnToggleChanged() {

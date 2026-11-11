@@ -8,14 +8,14 @@ struct SwitcherView: View {
             VStack(spacing: 14) {
                 PreferencesCard(model: model)
                 if model.needsKeyboardAccess {
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Allow keyboard access once to switch languages with Fn.")
+                    VStack(alignment: .center, spacing: 10) {
+                        Text("Allow keyboard access to switch languages with Fn.")
                             .font(.subheadline).foregroundStyle(.secondary)
-                        HStack {
-                            Button("Allow access", systemImage: "keyboard", action: model.requestKeyboardAccess)
-                                .buttonStyle(.glass)
-                            Button("Not now", action: model.cancelAccessRequest).buttonStyle(.plain)
-                        }
+                            .multilineTextAlignment(.center)
+                        Button("Allow access", systemImage: "keyboard", action: model.requestKeyboardAccess)
+                            .buttonStyle(.glass)
+                            .buttonBorderShape(.capsule)
+                            .frame(maxWidth: .infinity, alignment: .center)
                     }
                 }
                 if let notice = model.notice {
@@ -23,7 +23,7 @@ struct SwitcherView: View {
                 }
                 HStack {
                     Menu {
-                        Text("Normal Switcher 1.0.3")
+                        Text("Normal Switcher 1.0.4")
                         Text("By Matthew Avgul")
                         Divider()
                         Button("Source on GitHub", systemImage: "chevron.left.forwardslash.chevron.right", action: model.openSource)

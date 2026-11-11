@@ -8,3 +8,5 @@ swiftc -swift-version 6 Sources/NormalSwitcher/FnSettingsSnapshot.swift Sources/
 .build/tests/fn-ownership-tests
 swiftc -swift-version 6 Sources/NormalSwitcher/PanelPlacement.swift Tests/PanelPlacementTests.swift -o .build/tests/panel-placement-tests
 .build/tests/panel-placement-tests
+swiftc -swift-version 6 Sources/NormalSwitcher/PanelPresentation.swift Tests/PanelPresentationTests.swift -o .build/tests/panel-presentation-tests
+.build/tests/panel-presentation-tests
