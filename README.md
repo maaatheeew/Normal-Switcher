@@ -7,7 +7,7 @@
 - Fn combinations stay combinations: Fn + Delete, arrow keys, and media keys do not change the language.
 - A round menu bar capsule shows the selected language (RU, EN, FR, etc.). ASCII-capable layouts use a solid badge; other layouts use a strong outline with a transparent background.
 - The monochrome panel is positioned below the menu bar and constrained to the current screen.
-- Choose a language from the panel, pause Fn switching, or enable launch at login.
+- A minimal panel with two switches: **Switch normally with Fn** and **Launch at login**, an about menu, and a glass Quit button.
 - Automatically follows the macOS light/dark appearance and a layered Icon Composer icon.
 - No accounts, telemetry, network service, or text logging.
 
@@ -17,7 +17,7 @@ macOS 26 or later. The downloadable build targets Apple Silicon.
 
 Download the ZIP from [Releases](https://github.com/maaatheeew/Normal-Switcher/releases), move **Normal Switcher.app** into Applications, and open it. Quit other Fn remapping utilities before starting it.
 
-On first enabling **Switch with Fn**, macOS asks for Accessibility access (called Device Control and Data Access in macOS 27). After access is granted, the app saves the current Fn action, sets the system action to Do Nothing, and takes over Fn switching. Turning the switch off restores the exact saved action, including Do Nothing or an absent preference. Normal exit also restores it. Each enable captures the latest system setting. The language buttons still work when Fn switching is paused. **Launch at login** is off until you enable it.
+On first enabling **Switch with Fn**, macOS asks for Accessibility access (called Device Control and Data Access in macOS 27). After access is granted, the app saves the current Fn action, sets the system action to Do Nothing, and takes over Fn switching. Turning the switch off restores the exact saved action, including Do Nothing or an absent preference. Normal exit also restores it. Each enable captures the latest system setting. **Launch at login** is off until you enable it.
 
 If access is missing, an inline **Allow access** action appears during setup. Until permission is granted, the app leaves the system Fn action unchanged. Secure Input (for example, password fields) can prevent global key monitoring.
 

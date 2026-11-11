@@ -6,7 +6,6 @@ struct SwitcherView: View {
     var body: some View {
         GlassEffectContainer(spacing: 8) {
             VStack(spacing: 14) {
-                LanguagePicker(model: model)
                 PreferencesCard(model: model)
                 if model.needsKeyboardAccess {
                     VStack(alignment: .leading, spacing: 10) {
@@ -24,18 +23,22 @@ struct SwitcherView: View {
                 }
                 HStack {
                     Menu {
-                        Text("Normal Switcher 1.0.2")
+                        Text("Normal Switcher 1.0.3")
                         Text("By Matthew Avgul")
                         Divider()
                         Button("Source on GitHub", systemImage: "chevron.left.forwardslash.chevron.right", action: model.openSource)
                     } label: {
                         Image(systemName: "ellipsis").frame(width: 24, height: 18)
                     }
-                    .menuStyle(.borderlessButton).fixedSize()
+                    .menuStyle(.borderlessButton)
+                    .menuIndicator(.hidden)
+                    .fixedSize()
                     .accessibilityLabel("About Normal Switcher")
                     Spacer()
-                    Button("Quit", systemImage: "power", action: model.quit)
-                        .buttonStyle(.glass).controlSize(.small)
+                    Button("Quit", action: model.quit)
+                        .buttonStyle(.glass)
+                        .buttonBorderShape(.capsule)
+                        .controlSize(.regular)
                 }
                 .foregroundStyle(.secondary)
             }
