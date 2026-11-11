@@ -44,7 +44,7 @@ def build():
     (app / 'Contents/Info.plist').write_bytes(plistlib.dumps(info))
     run(['codesign', '--force', '--sign', '-', app])
     run(['codesign', '--verify', '--deep', '--strict', app])
-    archive = ROOT / 'dist/Normal-Switcher-1.0.0-macOS.zip'
+    archive = ROOT / f'dist/Normal-Switcher-{info["CFBundleShortVersionString"]}-macOS.zip'
     if archive.exists(): archive.unlink()
     run(['ditto', '-c', '-k', '--keepParent', app, archive])
     print(app)

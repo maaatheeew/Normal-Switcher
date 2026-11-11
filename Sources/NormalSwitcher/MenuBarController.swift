@@ -6,6 +6,7 @@ final class MenuBarController: NSObject, NSApplicationDelegate, NSPopoverDelegat
     private var model: SwitcherModel?
     private var item: NSStatusItem?
     private let popover = NSPopover()
+    private let languageBadge = StatusLanguageBadge()
     private var designWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -18,6 +19,8 @@ final class MenuBarController: NSObject, NSApplicationDelegate, NSPopoverDelegat
         let model = SwitcherModel()
         self.model = model
         item = NSStatusBar.system.statusItem(withLength: 34)
+        languageBadge.setAccessibilityElement(false)
+        item?.button?.addSubview(languageBadge)
         item?.button?.target = self
         item?.button?.action = #selector(togglePopover)
         item?.button?.setAccessibilityLabel("Normal Switcher")
@@ -60,8 +63,12 @@ final class MenuBarController: NSObject, NSApplicationDelegate, NSPopoverDelegat
         guard let model else { return }
         let selected = model.layouts.first { $0.id == model.selectedID }
         item?.button?.image = nil
-        item?.button?.title = selected?.shortName ?? "—"
-        item?.button?.font = NSFont.monospacedSystemFont(ofSize: 12, weight: .medium)
+        item?.button?.title = ""
+        languageBadge.language = selected?.shortName ?? "—"
+        let width = languageBadge.preferredWidth
+        item?.length = width + 8
+        let height = item?.button?.bounds.height ?? 24
+        languageBadge.frame = NSRect(x: 4, y: (height - 18) / 2, width: width, height: 18)
         item?.button?.toolTip = selected?.name
         item?.button?.setAccessibilityLabel(selected?.name ?? "Keyboard language")
     }

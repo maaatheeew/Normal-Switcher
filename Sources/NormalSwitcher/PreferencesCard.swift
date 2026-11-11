@@ -6,7 +6,7 @@ struct PreferencesCard: View {
     var body: some View {
         VStack(spacing: 0) {
             Toggle(isOn: $model.fnEnabled) {
-                Label("Switch with Fn", systemImage: "globe")
+                Label("Switch normally with Fn", systemImage: "globe")
             }
             .padding(.vertical, 13)
             Divider()

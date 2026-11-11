@@ -24,7 +24,7 @@ struct SwitcherView: View {
                 }
                 HStack {
                     Menu {
-                        Text("Normal Switcher 1.0")
+                        Text("Normal Switcher 1.0.1")
                         Text("By Matthew Avgul")
                         Divider()
                         Button("Source on GitHub", systemImage: "chevron.left.forwardslash.chevron.right", action: model.openSource)

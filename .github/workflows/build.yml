@@ -23,5 +23,5 @@ jobs:
       - uses: actions/upload-artifact@v7
         with:
           name: Normal-Switcher-macOS
-          path: dist/Normal-Switcher-1.0.0-macOS.zip
+          path: dist/Normal-Switcher-*-macOS.zip
           if-no-files-found: error
