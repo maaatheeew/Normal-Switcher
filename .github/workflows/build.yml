@@ -1,0 +1,27 @@
+name: Build and verify
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  macos:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v7
+      - name: Toolchain
+        run: swift --version
+      - name: Gesture regression tests
+        run: ./scripts/test.sh
+      - name: Build app with adaptive Liquid Glass icon
+        run: python3 scripts/build.py --require-adaptive-icon
+      - name: Verify package
+        run: |
+          codesign --verify --deep --strict 'dist/Normal Switcher.app'
+          test -f 'dist/Normal Switcher.app/Contents/Resources/Assets.car'
+      - uses: actions/upload-artifact@v7
+        with:
+          name: Normal-Switcher-macOS
+          path: dist/Normal-Switcher-1.0.0-macOS.zip
+          if-no-files-found: error

@@ -1,0 +1,29 @@
+{
+  "fill": {
+    "automatic-gradient": "extended-srgb:0.98,0.98,0.97,1"
+  },
+  "groups": [
+    {
+      "name": "Yellow globe",
+      "layers": [
+        {
+          "name": "Globe",
+          "image-name": "Globe.svg",
+          "glass": true
+        }
+      ],
+      "specular": true,
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0.28
+      },
+      "translucency": {
+        "enabled": true,
+        "value": 0.16
+      }
+    }
+  ],
+  "supported-platforms": {
+    "squares": "shared"
+  }
+}
