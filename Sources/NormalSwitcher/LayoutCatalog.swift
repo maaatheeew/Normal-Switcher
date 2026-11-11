@@ -22,7 +22,7 @@ final class LayoutCatalog: NSObject {
             let languages = object(source, kTISPropertyInputSourceLanguages) as? [String] ?? []
             let language = languages.first ?? ""
             let code = language.split(separator: "-").first.map(String.init) ?? language
-            return KeyboardLayout(id: identifier, name: title, shortName: code.isEmpty ? String(title.prefix(2)).uppercased() : code.uppercased())
+            return KeyboardLayout(id: identifier, name: title, shortName: code.isEmpty ? String(title.prefix(2)).uppercased() : code.uppercased(), isASCIICapable: object(source, kTISPropertyInputSourceIsASCIICapable) as? Bool ?? false)
         }
     }
 

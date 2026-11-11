@@ -5,7 +5,8 @@
 - Tap **Fn / 🌐** to select your next keyboard language directly.
 - A fixed destination per press prevents toggling back when another handler has already selected that language.
 - Fn combinations stay combinations: Fn + Delete, arrow keys, and media keys do not change the language.
-- A rounded capsule in the menu bar shows the selected language (RU, EN, FR, etc.) and opens a compact Liquid Glass panel.
+- A round menu bar capsule shows the selected language (RU, EN, FR, etc.). ASCII-capable layouts use a solid badge; other layouts use a strong outline with a transparent background.
+- The monochrome panel is positioned below the menu bar and constrained to the current screen.
 - Choose a language from the panel, pause Fn switching, or enable launch at login.
 - Automatically follows the macOS light/dark appearance and a layered Icon Composer icon.
 - No accounts, telemetry, network service, or text logging.

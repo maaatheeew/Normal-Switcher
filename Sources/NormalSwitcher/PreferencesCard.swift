@@ -1,25 +1,24 @@
 import SwiftUI
 
 struct PreferencesCard: View {
+    @Environment(\.colorScheme) private var colorScheme
     @ObservedObject var model: SwitcherModel
 
     var body: some View {
         VStack(spacing: 0) {
             Toggle(isOn: $model.fnEnabled) {
-                Label("Switch normally with Fn", systemImage: "globe")
+                Text("Switch normally with Fn")
             }
-            .padding(.vertical, 13)
+            .padding(.vertical, 10)
             Divider()
             Toggle(isOn: $model.launchAtLogin) {
-                Label("Launch at login", systemImage: "sunrise")
+                Text("Launch at login")
             }
-            .padding(.vertical, 13)
+            .padding(.vertical, 10)
             .onChange(of: model.launchAtLogin) { _, _ in model.updateLoginItem() }
         }
         .toggleStyle(.switch)
-        .tint(Palette.yellow)
+        .tint(colorScheme == .dark ? .white : .black)
         .font(.body)
-        .padding(.horizontal, 16)
-        .glassEffect(.regular, in: .rect(cornerRadius: 20))
     }
 }

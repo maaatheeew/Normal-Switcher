@@ -5,7 +5,7 @@ struct SwitcherView: View {
 
     var body: some View {
         GlassEffectContainer(spacing: 8) {
-            VStack(spacing: 20) {
+            VStack(spacing: 14) {
                 LanguagePicker(model: model)
                 PreferencesCard(model: model)
                 if model.needsKeyboardAccess {
@@ -24,7 +24,7 @@ struct SwitcherView: View {
                 }
                 HStack {
                     Menu {
-                        Text("Normal Switcher 1.0.1")
+                        Text("Normal Switcher 1.0.2")
                         Text("By Matthew Avgul")
                         Divider()
                         Button("Source on GitHub", systemImage: "chevron.left.forwardslash.chevron.right", action: model.openSource)
