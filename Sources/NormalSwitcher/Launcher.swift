@@ -13,6 +13,10 @@ struct Launcher {
             QuitVerification.run()
             return
         }
+        if ProcessInfo.processInfo.arguments.contains("--check-access") {
+            print("AX trusted: \(AXIsProcessTrusted())")
+            return
+        }
         let app = NSApplication.shared
         let delegate = MenuBarController()
         app.delegate = delegate

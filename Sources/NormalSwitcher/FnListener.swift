@@ -1,7 +1,13 @@
 import AppKit
 
 @MainActor
-final class FnListener {
+protocol FnListening: AnyObject {
+    func start() -> Bool
+    func stop()
+}
+
+@MainActor
+final class FnListener: FnListening {
     var enabled = true { didSet { tap.cancel() } }
     private var tap = FnTap()
     private var outside: Any?
@@ -10,16 +16,19 @@ final class FnListener {
 
     init(catalog: LayoutCatalog) { self.catalog = catalog }
 
-    func start() {
-        guard outside == nil else { return }
+    func start() -> Bool {
+        guard outside == nil else { return inside != nil }
         let mask: NSEvent.EventTypeMask = [.flagsChanged, .keyDown, .systemDefined]
         outside = NSEvent.addGlobalMonitorForEvents(matching: mask) { [weak self] event in
             MainActor.assumeIsolated { self?.consume(event) }
         }
+        guard outside != nil else { return false }
         inside = NSEvent.addLocalMonitorForEvents(matching: mask) { [weak self] event in
             MainActor.assumeIsolated { self?.consume(event) }
             return event
         }
+        guard inside != nil else { stop(); return false }
+        return true
     }
 
     func stop() {

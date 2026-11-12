@@ -6,39 +6,44 @@ final class HIToolboxSettings: FnSettingsAccess {
     private let domain = "com.apple.HIToolbox" as CFString
     private let actionKey = "AppleFnUsageType" as CFString
 
-    func read() -> FnSettingsSnapshot {
-        let action = value(actionKey, domain: domain)
-        var effective = action ?? 2
-        withLibrary { handle in
-            if let address = dlsym(handle, "TISGetFnUsageType") {
-                effective = Int(unsafeBitCast(address, to: (@convention(c) () -> Int32).self)())
+    func read() throws -> FnSettingsSnapshot {
+        try withLibrary { handle in
+            guard let address = dlsym(handle, "TISGetFnUsageType"),
+                  dlsym(handle, "TISUpdateFnUsageType") != nil else { throw FnControlError.unavailable }
+            guard CFPreferencesSynchronize(domain, kCFPreferencesCurrentUser, kCFPreferencesAnyHost) else {
+                throw FnControlError.readFailed
             }
-        }
-        return FnSettingsSnapshot(storedAction: action, effectiveAction: effective)
-    }
-
-    func apply(_ snapshot: FnSettingsSnapshot) {
-        write(actionKey, domain: domain, value: snapshot.storedAction)
-        withLibrary { handle in
-            if let address = dlsym(handle, "TISUpdateFnUsageType") {
-                unsafeBitCast(address, to: (@convention(c) (Int32) -> Void).self)(Int32(snapshot.effectiveAction))
+            let raw = CFPreferencesCopyValue(actionKey, domain, kCFPreferencesCurrentUser, kCFPreferencesAnyHost)
+            if let raw, !(raw is NSNumber) { throw FnControlError.readFailed }
+            let action = (raw as? NSNumber)?.intValue
+            let effective = Int(unsafeBitCast(address, to: (@convention(c) () -> Int32).self)())
+            guard (0...3).contains(effective), (action.map { (0...3).contains($0) } ?? true) else {
+                throw FnControlError.readFailed
             }
+            return FnSettingsSnapshot(storedAction: action, effectiveAction: effective)
         }
     }
 
-    private func value(_ key: CFString, domain: CFString) -> Int? {
-        (CFPreferencesCopyValue(key, domain, kCFPreferencesCurrentUser, kCFPreferencesAnyHost) as? NSNumber)?.intValue
+    func apply(_ snapshot: FnSettingsSnapshot) throws {
+        guard snapshot.isValid else { throw FnControlError.writeFailed }
+        try withLibrary { handle in
+            guard let address = dlsym(handle, "TISUpdateFnUsageType"),
+                  dlsym(handle, "TISGetFnUsageType") != nil else { throw FnControlError.unavailable }
+            CFPreferencesSetValue(actionKey, snapshot.storedAction.map(NSNumber.init(value:)), domain,
+                                  kCFPreferencesCurrentUser, kCFPreferencesAnyHost)
+            guard CFPreferencesSynchronize(domain, kCFPreferencesCurrentUser, kCFPreferencesAnyHost) else {
+                throw FnControlError.writeFailed
+            }
+            unsafeBitCast(address, to: (@convention(c) (Int32) -> Void).self)(Int32(snapshot.effectiveAction))
+        }
+        guard try read() == snapshot else { throw FnControlError.writeFailed }
     }
 
-    private func write(_ key: CFString, domain: CFString, value: Int?) {
-        CFPreferencesSetValue(key, value.map(NSNumber.init(value:)), domain, kCFPreferencesCurrentUser, kCFPreferencesAnyHost)
-        CFPreferencesSynchronize(domain, kCFPreferencesCurrentUser, kCFPreferencesAnyHost)
-    }
-
-    private func withLibrary(_ body: (UnsafeMutableRawPointer) -> Void) {
-        // Optional private cache API, resolved dynamically to survive OS changes.
-        guard let handle = dlopen("/System/Library/Frameworks/Carbon.framework/Frameworks/HIToolbox.framework/HIToolbox", RTLD_LAZY) else { return }
+    private func withLibrary<T>(_ body: (UnsafeMutableRawPointer) throws -> T) throws -> T {
+        guard let handle = dlopen("/System/Library/Frameworks/Carbon.framework/Frameworks/HIToolbox.framework/HIToolbox", RTLD_LAZY) else {
+            throw FnControlError.unavailable
+        }
         defer { dlclose(handle) }
-        body(handle)
+        return try body(handle)
     }
 }

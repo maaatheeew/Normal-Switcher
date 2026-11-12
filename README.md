@@ -1,53 +1,64 @@
 <table>
   <tr>
-    <td width="116"><img src="docs/assets/icon-light.png" alt="Normal Switcher icon" width="96"></td>
-    <td><h1>Normal Switcher</h1><p>Language switching that feels normal.<br>A small, native macOS menu bar app by Matthew Avgul.</p></td>
+    <td width="132" valign="middle">
+      <img src="docs/assets/icon-light.png" alt="Normal Switcher icon" width="112">
+    </td>
+    <td valign="middle">
+      <h1>Normal Switcher</h1>
+      <p>Your keyboard. Finally yours.<br>A tiny native macOS app that switches your keyboard language with a tap of Fn / 🌐.</p>
+    </td>
   </tr>
 </table>
 
 <p align="center">
-  <img src="docs/assets/panel.png" alt="Normal Switcher showing its RU menu bar capsule, two switches, about menu, and Quit button" width="520">
+  <img src="docs/assets/Normal-Switcher-screenshot.png" alt="Normal Switcher showing the current RU input source and the native menu with Status: On and Quit Normal Switcher" width="620">
 </p>
 
-Normal Switcher changes your keyboard language with a tap of **Fn / 🌐**, using direct input-source selection. It keeps the controls small: two switches, an about menu, and a Quit button.
+## Highlights
 
-## Features
+- One tap of **Fn / 🌐** selects the next enabled input source directly
+- Fn combinations such as Fn + Delete and arrow keys keep working as combinations
+- Current keyboard language in the menu bar, with codes such as EN, RU, FR, or DE
+- Minimal system menu with **Status: On/Off** and **Quit Normal Switcher**
+- A separate control window with a large native macOS switch and **Launch at login**
+- Bottom-up confetti and “Your keyboard. Finally yours.” after a successful activation; respects Reduce Motion
+- Optional launch at login through macOS Login Items
+- Previous system Fn action restored when switching is disabled or the app quits normally
+- Adaptive Icon Composer app icon; Apple Silicon native
+- Local operation, with no accounts, telemetry, text logging, or background network service
 
-- **Switch normally with Fn.** One tap chooses one destination. The destination is fixed on key-down and selected on release, so duplicate events cannot toggle straight back.
-- **Keep Fn shortcuts.** Fn + Delete, arrow keys, media keys, and other combinations stay combinations.
-- **Your languages.** The menu bar displays the current input source’s language code, such as EN, RU, FR, or DE, from the sources enabled in macOS.
-- **Two badge styles.** ASCII-capable layouts use a solid capsule; other layouts use a transparent capsule with a strong outline. EN is filled and RU is outlined.
-- **A native panel.** Liquid Glass, monochrome controls, automatic light/dark appearance, and a compact panel positioned below the menu bar. Click the badge again, press Escape, or click outside to close it.
-- **Launch at login.** Uses the macOS `SMAppService` API and reflects the system’s registration state. It stays off until you enable it.
-- **Reversible Fn control.** Disabling the function restores your previous Fn action. Normal exit restores it too, and a saved recovery record handles an interrupted run at the next launch.
-- **Local operation.** No account, telemetry, text logging, or background network service.
+## Requirements
+
+- Apple Silicon Mac
+- macOS 26 or newer
+- Accessibility permission to handle Fn
 
 ## Install
 
-**Requirements:** macOS 26 or later and an Apple Silicon Mac.
+Download the ZIP from the [latest release](https://github.com/maaatheeew/Normal-Switcher/releases/latest), extract it, and move **Normal Switcher.app** to **Applications**.
 
-1. Download `Normal-Switcher-1.0.4-macOS.zip` from the [latest release](https://github.com/maaatheeew/Normal-Switcher/releases/latest).
-2. Move **Normal Switcher.app** to **Applications** and open it.
-3. Quit any other utility that remaps Fn, then enable **Switch normally with Fn**.
-4. Use the centered **Allow access** button to approve Accessibility access in macOS. In macOS 27, the permission is called **Device Control and Data Access**.
+The screenshot shows the current `main` branch (**1.1.2**). The latest tagged release is still **1.0.4** and uses the previous interface. For the current version, build from source or download the ZIP artifact from a successful [Build and verify run on main](https://github.com/maaatheeew/Normal-Switcher/actions/workflows/build.yml?query=branch%3Amain). GitHub requires sign-in to download workflow artifacts.
 
-Until access is granted, Normal Switcher leaves the system Fn action unchanged. Once access is available, it saves that action, sets the system action to **Do Nothing**, and handles Fn itself. Turning the switch off restores the exact saved preference and behavior — including Do Nothing if that was your setting before enabling it.
+The app is **ad-hoc signed, not Apple-notarized**. Updating or rebuilding it may require granting Accessibility permission again.
 
-**Launch at login** uses macOS Login Items. If macOS requires approval, the app directs you to the relevant system settings. The screenshot shows both switches enabled; this does not change the defaults for a new installation.
+## Use
 
-The build is **ad-hoc signed, not Apple-notarized**. macOS may ask you to approve opening it in Privacy & Security. Updating or rebuilding an ad-hoc signed copy can require approving Accessibility access again. If an old permission entry remains enabled but the updated app cannot use it, remove that app entry in the permission list and approve the installed copy again.
+1. Open **Normal Switcher** and click its language code in the menu bar.
+2. Select **Status: On/Off** to open the controls, then turn on the large switch.
+3. When prompted, allow Normal Switcher in **System Settings → Privacy & Security → Accessibility**. If the existing entry is enabled but access is not recognized, remove that app entry, add the installed copy again, and reopen the app.
+4. Tap **Fn / 🌐** to switch languages. Enable **Launch at login** if desired.
 
-## What remains under macOS control
+Closing the control window keeps the app running in the menu bar. Select **Quit Normal Switcher** to exit. The menu and controls follow your macOS appearance.
 
-Normal Switcher does **not** draw an indicator beside the mouse, change the system text-caret indicator, or override your theme. The floating language indicator remains a system component. Secure Input, such as a password field or secure terminal entry, can prevent global keyboard monitoring.
+Before taking control, the app checks access and starts its keyboard event monitors. It saves your current Fn action, sets the system action to **Do Nothing**, and selects input sources itself. Turning the switch off or quitting normally restores the saved action, including an originally absent preference. If you choose a different Fn action in System Settings while the app is active, that setting is preserved during restoration.
 
-The badge displays language codes, not flags. Sources using the same language can share a code; the tooltip shows the full input-source name. Switching cycles through the input sources enabled in macOS.
+An interrupted run leaves a recovery snapshot for the next launch. Force-quitting or deleting the app cannot restore settings immediately. If Accessibility access is revoked while the app is running, it turns Fn handling off and attempts to restore the previous action. A failed settings operation is reported instead of silently treating it as successful.
 
 ## Build from source
 
-Swift 6.2 or later is required.
+Swift 6.2 or newer is required.
 
-```sh
+```bash
 git clone https://github.com/maaatheeew/Normal-Switcher.git
 cd Normal-Switcher
 ./scripts/test.sh
@@ -55,33 +66,38 @@ python3 scripts/build.py
 open "dist/Normal Switcher.app"
 ```
 
-Xcode supplies `actool`, which compiles the layered Icon Composer document in `Resources/AppIcon.icon` into adaptive `Assets.car` renditions. With Command Line Tools alone, the build uses an `.icns` fallback rendered by Apple’s Icon Composer. The GitHub Actions build requires the adaptive icon and uploads the packaged ZIP.
-
-The source targets macOS 26+. The distributed binary is arm64.
+The app and ZIP are written to `dist/`. Xcode's `actool` compiles `Resources/AppIcon.icon` into adaptive `Assets.car` renditions. A local build with Command Line Tools uses an `.icns` fallback. The GitHub Actions build requires the adaptive icon.
 
 ## Verification
 
-The CLI regression suite checks Fn gestures, exact restoration of previous Fn settings, interrupted-run recovery, screen-constrained panel placement, and repeated status-item clicks with focus changes.
+`./scripts/test.sh` checks Fn taps and combinations, repeated presses, settings restoration and recovery, failed writes, manual settings changes, permission denial and delayed grants, unavailable event monitors, permission revocation, native-switch state rollback, menu/window wiring, and confetti emission and cleanup.
 
-The installed app also provides two explicit diagnostic commands:
+Settings and permission regressions use isolated preferences, fake system settings, and fake event monitors. Menu/window checks inspect configuration and invoke actions directly. Confetti checks inspect the bottom emitter, animations, click-through behavior, and layer cleanup. These tests do not verify real clicks, visual alignment, particle trajectories, physical Fn delivery, or a real login after reboot.
 
-```sh
+The installed app also supports these explicit diagnostics:
+
+```bash
+"/Applications/Normal Switcher.app/Contents/MacOS/NormalSwitcher" --check-access
 "/Applications/Normal Switcher.app/Contents/MacOS/NormalSwitcher" --verify-login-item
 "/Applications/Normal Switcher.app/Contents/MacOS/NormalSwitcher" --verify-quit
 ```
 
-Run diagnostics with the normal app closed. The login-item check temporarily registers and unregisters the app, reads the system state, and restores the initial registration. It does not log you out or verify a real login session. The Quit check invokes the production Quit action in a separate headless process. Tests do not simulate keyboard input or capture your desktop.
+Close the normal app before running diagnostics. The login-item check temporarily changes registration and restores its original state. The Quit check invokes the production Quit action in a separate process.
 
-## Implementation
+## Privacy and system integration
 
-The app observes the physical Fn key and selects a specific input-source ID with the public Text Input Source API. Other keys or modifiers cancel a standalone tap. Notifications keep the badge in sync with changes made outside the app.
+Normal Switcher observes Fn and modifier/key events to distinguish a standalone tap from a combination. It selects an input-source ID with Apple's Text Input Source API and does not log typed text. The menu bar code follows the selected input source; sources sharing a language can share a code, and the tooltip shows the full source name.
 
-An optional, dynamically resolved private HIToolbox function refreshes the system Fn-action cache after the preference changes. If that function is unavailable on a future macOS version, the saved preference remains, but a logout or manual refresh in Keyboard settings may be necessary. The app never changes the system caret-indicator preference.
+The app does not change the macOS language indicator at the text cursor or add an indicator beside the mouse.
+
+Fn-action control uses dynamically resolved private HIToolbox functions. If those functions are unavailable or a settings change cannot be verified, Fn handling stays off and an error is shown. A saved recovery snapshot is retained when restoration cannot be completed.
 
 ## Credits and license
 
-Inspired by the problem and approach described in [tonku321/FnLangSwitch](https://github.com/tonku321/fn-lang-switcher).
+Inspired by the problem and approach described in [tonku321/FnLangSwitch](https://github.com/tonku321/fn-lang-switcher). Normal Switcher is a separate implementation and does not redistribute that project's source or binary.
 
-Normal Switcher is a separate implementation with its own UI, artwork, event handling, and tests. It does not redistribute the original FnLangSwitch source or binary. Apple frameworks and SF Symbols belong to Apple.
+The celebration effect adapts [Kirchberg/Confetti](https://github.com/Kirchberg/Confetti) for macOS using AppKit and Core Animation. Copyright © 2023 Kostarev Kirill, [MIT License](ThirdParty/Confetti/LICENSE). The [adaptation notes](ThirdParty/Confetti/README.md) record the source revision and changes.
 
-[MIT License](LICENSE) · Copyright © 2026 Matthew Avgul.
+Normal Switcher is available under the [MIT License](LICENSE). Apple frameworks and SF Symbols belong to Apple.
+
+[![Star History Chart](https://api.star-history.com/svg?repos=maaatheeew%2FNormal-Switcher&type=Date)](https://star-history.com/#maaatheeew/Normal-Switcher&Date)

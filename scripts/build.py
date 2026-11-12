@@ -23,6 +23,7 @@ def build():
     (app / 'Contents/MacOS').mkdir(parents=True)
     resources.mkdir()
     shutil.copy2(bin_path / 'NormalSwitcher', app / 'Contents/MacOS/NormalSwitcher')
+    shutil.copy2(ROOT / 'ThirdParty/Confetti/LICENSE', resources / 'Confetti-LICENSE.txt')
     info = plistlib.loads((ROOT / 'Resources/Info.plist').read_bytes())
     actool = subprocess.run(['xcrun', '--find', 'actool'], capture_output=True, text=True)
     if actool.returncode == 0:
