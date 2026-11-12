@@ -35,9 +35,9 @@
 
 ## Install
 
-Download the ZIP from the [latest release](https://github.com/maaatheeew/Normal-Switcher/releases/latest), extract it, and move **Normal Switcher.app** to **Applications**.
+Download [Normal-Switcher-1.1.4-macOS.zip](https://github.com/maaatheeew/Normal-Switcher/releases/download/v1.1.4/Normal-Switcher-1.1.4-macOS.zip), extract it, and move **Normal Switcher.app** to **Applications**.
 
-The screenshot shows the current `main` branch (**1.1.2**). The latest tagged release is still **1.0.4** and uses the previous interface. For the current version, build from source or download the ZIP artifact from a successful [Build and verify run on main](https://github.com/maaatheeew/Normal-Switcher/actions/workflows/build.yml?query=branch%3Amain). GitHub requires sign-in to download workflow artifacts.
+Development builds are also available as ZIP artifacts from successful [Build and verify runs on main](https://github.com/maaatheeew/Normal-Switcher/actions/workflows/build.yml?query=branch%3Amain). GitHub requires sign-in to download workflow artifacts.
 
 The app is **ad-hoc signed, not Apple-notarized**. Updating or rebuilding it may require granting Accessibility permission again.
 
@@ -70,7 +70,7 @@ The app and ZIP are written to `dist/`. Xcode's `actool` compiles `Resources/App
 
 ## Verification
 
-`./scripts/test.sh` checks Fn taps and combinations, repeated presses, settings restoration and recovery, failed writes, manual settings changes, permission denial and delayed grants, unavailable event monitors, permission revocation, native-switch state rollback, menu/window wiring, and confetti emission and cleanup.
+`./scripts/test.sh` checks Fn taps and combinations, repeated presses, settings restoration and recovery, failed writes, manual settings changes, permission denial and delayed grants, unavailable event monitors, permission revocation, native-switch state rollback, menu/window wiring, confetti emission and cleanup, and exact system-indicator preference restoration.
 
 Settings and permission regressions use isolated preferences, fake system settings, and fake event monitors. Menu/window checks inspect configuration and invoke actions directly. Confetti checks inspect the bottom emitter, animations, click-through behavior, and layer cleanup. These tests do not verify real clicks, visual alignment, particle trajectories, physical Fn delivery, or a real login after reboot.
 
@@ -88,7 +88,9 @@ Close the normal app before running diagnostics. The login-item check temporaril
 
 Normal Switcher observes Fn and modifier/key events to distinguish a standalone tap from a combination. It selects an input-source ID with Apple's Text Input Source API and does not log typed text. The menu bar code follows the selected input source; sources sharing a language can share a code, and the tooltip shows the full source name.
 
-The app does not change the macOS language indicator at the text cursor or add an indicator beside the mouse.
+While Fn handling is enabled, Normal Switcher hides the system input-source indicator at the text cursor. Turning the switch off restores the exact previous global preference immediately, including an absent value or an already-disabled indicator, while the app keeps running. Permission loss and normal exit restore it too. Launching with Fn off leaves the indicator unchanged, apart from recovery of an interrupted previous run. A recovery snapshot survives an interrupted run; after a forced stop, restoration requires launching the app again. Manual preference changes made outside the app are preserved.
+
+This follows the `TSMLanguageIndicatorEnabled` mechanism used by FnLangSwitch and refreshes the current user's `TextInputMenuAgent`. It uses an undocumented macOS preference, so visual behavior needs verification on the target OS. The app does not draw an indicator beside the mouse.
 
 Fn-action control uses dynamically resolved private HIToolbox functions. If those functions are unavailable or a settings change cannot be verified, Fn handling stays off and an error is shown. A saved recovery snapshot is retained when restoration cannot be completed.
 

@@ -6,6 +6,8 @@ swiftc -swift-version 6 Sources/NormalSwitcher/FnTap.swift Tests/FnTapTests.swif
 .build/tests/fn-tap-tests
 swiftc -swift-version 6 Sources/NormalSwitcher/FnSettingsSnapshot.swift Sources/NormalSwitcher/FnSettingsAccess.swift Sources/NormalSwitcher/SystemFnAction.swift Tests/SystemFnActionTests.swift -o .build/tests/fn-ownership-tests
 .build/tests/fn-ownership-tests
+swiftc -swift-version 6 Sources/NormalSwitcher/IndicatorPreference.swift Sources/NormalSwitcher/IndicatorSettingsAccess.swift Sources/NormalSwitcher/GlobalIndicatorSettings.swift Sources/NormalSwitcher/SystemLanguageIndicator.swift Tests/SystemLanguageIndicatorTests.swift -o .build/tests/system-indicator-tests
+.build/tests/system-indicator-tests
 swiftc -swift-version 6 -target arm64-apple-macos26.0 \
     Sources/NormalSwitcher/KeyboardLayout.swift \
     Sources/NormalSwitcher/LayoutCatalog.swift \
@@ -16,6 +18,10 @@ swiftc -swift-version 6 -target arm64-apple-macos26.0 \
     Sources/NormalSwitcher/FnSettingsAccess.swift \
     Sources/NormalSwitcher/HIToolboxSettings.swift \
     Sources/NormalSwitcher/SystemFnAction.swift \
+    Sources/NormalSwitcher/IndicatorPreference.swift \
+    Sources/NormalSwitcher/IndicatorSettingsAccess.swift \
+    Sources/NormalSwitcher/GlobalIndicatorSettings.swift \
+    Sources/NormalSwitcher/SystemLanguageIndicator.swift \
     Sources/NormalSwitcher/SwitcherModel.swift \
     Sources/NormalSwitcher/ActivationFeedback.swift \
     Tests/KeyboardAccessTests.swift -o .build/tests/keyboard-access-tests

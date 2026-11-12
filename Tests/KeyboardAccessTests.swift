@@ -46,6 +46,21 @@ private final class TestFnListener: FnListening {
     func stop() { running = false }
 }
 
+@MainActor
+private final class KeyboardIndicatorSettings: IndicatorSettingsAccess {
+    var value = IndicatorPreference.absent
+    var writes = 0
+    var reloads = 0
+    var failHide = false
+    func read() throws -> IndicatorPreference { value }
+    func apply(_ value: IndicatorPreference) throws {
+        if failHide && value == .integer(0) { throw NSError(domain: "TestIndicator", code: 1) }
+        writes += 1
+        self.value = value
+    }
+    func reloadAgent() throws { reloads += 1 }
+}
+
 @main
 @MainActor
 struct KeyboardAccessTests {
@@ -59,6 +74,7 @@ struct KeyboardAccessTests {
         try await grantAfterRequestEnablesWithoutReprompt()
         try await monitorFailureAndRevocation()
         try startupDoesNotCelebrate()
+        try await indicatorFollowsFnMode()
         print("PASS: keyboard access startup without prompts, denied enable, explicit retry, guidance after grace, later grant enables without re-prompt, disable/stop cancel polling; isolated preferences, fake settings, fake event monitors and simulated AX")
     }
 
@@ -71,6 +87,7 @@ struct KeyboardAccessTests {
         let model = SwitcherModel(
             defaults: defaults,
             systemAction: SystemFnAction(access: MemoryFnSettings(), defaults: defaults),
+            systemIndicator: SystemLanguageIndicator(access: KeyboardIndicatorSettings(), defaults: defaults),
             listener: TestFnListener(),
             isKeyboardAccessTrusted: access.isTrusted,
             promptForKeyboardAccess: access.prompt
@@ -107,6 +124,7 @@ struct KeyboardAccessTests {
         let model = SwitcherModel(
             defaults: defaults,
             systemAction: SystemFnAction(access: MemoryFnSettings(), defaults: defaults),
+            systemIndicator: SystemLanguageIndicator(access: KeyboardIndicatorSettings(), defaults: defaults),
             listener: TestFnListener(),
             isKeyboardAccessTrusted: access.isTrusted,
             promptForKeyboardAccess: access.prompt
@@ -162,6 +180,7 @@ struct KeyboardAccessTests {
         let model = SwitcherModel(
             defaults: defaults,
             systemAction: SystemFnAction(access: MemoryFnSettings(), defaults: defaults),
+            systemIndicator: SystemLanguageIndicator(access: KeyboardIndicatorSettings(), defaults: defaults),
             listener: TestFnListener(),
             isKeyboardAccessTrusted: access.isTrusted,
             promptForKeyboardAccess: access.prompt
@@ -191,6 +210,7 @@ struct KeyboardAccessTests {
         let model = SwitcherModel(
             defaults: defaults,
             systemAction: SystemFnAction(access: MemoryFnSettings(), defaults: defaults),
+            systemIndicator: SystemLanguageIndicator(access: KeyboardIndicatorSettings(), defaults: defaults),
             listener: TestFnListener(),
             isKeyboardAccessTrusted: access.isTrusted,
             promptForKeyboardAccess: access.prompt
@@ -228,7 +248,8 @@ struct KeyboardAccessTests {
         let listener = TestFnListener()
         listener.available = false
         let model = SwitcherModel(defaults: defaults,
-            systemAction: SystemFnAction(access: settings, defaults: defaults), listener: listener,
+            systemAction: SystemFnAction(access: settings, defaults: defaults),
+            systemIndicator: SystemLanguageIndicator(access: KeyboardIndicatorSettings(), defaults: defaults), listener: listener,
             isKeyboardAccessTrusted: access.isTrusted, promptForKeyboardAccess: access.prompt)
         defer { model.stop() }
         let feedback = ActivationFeedback(model: model)
@@ -274,7 +295,8 @@ struct KeyboardAccessTests {
         let access = LatentKeyboardAccess()
         access.granted = true
         let model = SwitcherModel(defaults: defaults,
-            systemAction: SystemFnAction(access: MemoryFnSettings(), defaults: defaults), listener: TestFnListener(),
+            systemAction: SystemFnAction(access: MemoryFnSettings(), defaults: defaults),
+            systemIndicator: SystemLanguageIndicator(access: KeyboardIndicatorSettings(), defaults: defaults), listener: TestFnListener(),
             isKeyboardAccessTrusted: access.isTrusted, promptForKeyboardAccess: access.prompt)
         let feedback = ActivationFeedback(model: model)
         defer { model.stop() }
@@ -292,6 +314,61 @@ struct KeyboardAccessTests {
         feedback.toggle()
         precondition(model.fnEnabled && feedback.burst == 1, "A fresh successful user activation celebrates")
         print("PASS: confetti only after successful user activation, not on launch, denied/cancelled attempts, failed writes or deactivation")
+    }
+
+    private static func indicatorFollowsFnMode() async throws {
+        let domain = "NormalSwitcher.KeyboardAccessTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: domain)!
+        defer { defaults.removePersistentDomain(forName: domain) }
+        let access = LatentKeyboardAccess()
+        let settings = MemoryFnSettings()
+        let originalFn = settings.current
+        let indicator = KeyboardIndicatorSettings()
+        let model = SwitcherModel(defaults: defaults,
+            systemAction: SystemFnAction(access: settings, defaults: defaults),
+            systemIndicator: SystemLanguageIndicator(access: indicator, defaults: defaults),
+            listener: TestFnListener(), isKeyboardAccessTrusted: access.isTrusted, promptForKeyboardAccess: access.prompt)
+        defer { model.stop() }
+        model.start()
+        precondition(indicator.value == .absent && indicator.writes == 0, "Launching with Fn off must leave the system indicator alone")
+        model.fnEnabled = true
+        precondition(!model.fnEnabled && indicator.writes == 0, "Denied activation must not hide the indicator")
+        access.granted = true
+        model.verifyPendingAccess()
+        precondition(model.fnEnabled && indicator.value == .integer(0))
+        model.fnEnabled = false
+        precondition(indicator.value == .absent && settings.current == originalFn,
+                     "Turning Fn off must restore the indicator immediately, without quitting the app")
+        precondition(defaults.object(forKey: "originalLanguageIndicator.v1") == nil)
+        for _ in 0..<2 {
+            model.fnEnabled = true
+            precondition(model.fnEnabled && indicator.value == .integer(0))
+            model.fnEnabled = false
+            precondition(indicator.value == .absent)
+        }
+        model.fnEnabled = true
+        access.granted = false
+        try await Task.sleep(for: .milliseconds(1400))
+        precondition(!model.fnEnabled && indicator.value == .absent, "Losing AX must restore the system indicator")
+        access.granted = true
+        indicator.failHide = true
+        model.fnEnabled = true
+        precondition(!model.fnEnabled && indicator.value == .absent && settings.current == originalFn,
+                     "Failed indicator hiding must roll Fn back")
+        precondition(defaults.object(forKey: "originalLanguageIndicator.v1") == nil)
+        indicator.failHide = false
+        model.fnEnabled = true
+        model.stop()
+        precondition(indicator.value == .absent && !model.fnEnabled, "Quit restores the indicator too")
+
+        let orphan = SystemLanguageIndicator(access: indicator, defaults: defaults)
+        try orphan.start()
+        precondition(indicator.value == .integer(0))
+        defaults.set(false, forKey: "fnEnabled")
+        model.start()
+        precondition(!model.fnEnabled && indicator.value == .absent,
+                     "A startup with Fn off must recover an orphaned hidden indicator")
+        print("PASS: indicator follows Fn On/Off immediately; no hide on app launch/denial; restore on revocation/stop; orphan recovery and activation rollback")
     }
 
     private static func assertDenied(_ model: SwitcherModel, defaults: UserDefaults) {

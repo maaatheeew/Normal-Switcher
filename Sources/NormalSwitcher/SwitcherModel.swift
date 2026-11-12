@@ -16,6 +16,7 @@ final class SwitcherModel: ObservableObject {
     var statusChanged: (() -> Void)?
     private let catalog = LayoutCatalog()
     private let loginItems = LoginItemManager()
+    private let systemIndicator: SystemLanguageIndicator
     private let systemAction: SystemFnAction
     private let defaults: UserDefaults
     private let isKeyboardAccessTrusted: () -> Bool
@@ -33,6 +34,7 @@ final class SwitcherModel: ObservableObject {
     init(
         defaults: UserDefaults = .standard,
         systemAction: SystemFnAction? = nil,
+        systemIndicator: SystemLanguageIndicator? = nil,
         listener: (any FnListening)? = nil,
         isKeyboardAccessTrusted: @escaping () -> Bool = { AXIsProcessTrusted() },
         promptForKeyboardAccess: @escaping () -> Void = {
@@ -44,6 +46,7 @@ final class SwitcherModel: ObservableObject {
         self.isKeyboardAccessTrusted = isKeyboardAccessTrusted
         self.promptForKeyboardAccess = promptForKeyboardAccess
         self.listener = listener ?? FnListener(catalog: catalog)
+        self.systemIndicator = systemIndicator ?? SystemLanguageIndicator(defaults: defaults)
         self.systemAction = systemAction ?? SystemFnAction(access: HIToolboxSettings(), defaults: defaults)
         launchAtLogin = loginItems.isEnabled
         catalog.changed = { [weak self] in self?.refresh() }
@@ -53,8 +56,12 @@ final class SwitcherModel: ObservableObject {
     func start() {
         guard !isRunning else { return }
         isRunning = true
+        var recoveryFailed = false
+        do { try systemIndicator.recover() }
+        catch { reportIndicatorFailure(error); recoveryFailed = true }
         do { try systemAction.recover() }
-        catch { reportFnFailure(); return }
+        catch { reportFnFailure(); recoveryFailed = true }
+        guard !recoveryFailed else { return }
         if defaults.bool(forKey: "fnEnabled") {
             log.debug("stored Fn enabled; accessibility trust=\(self.isKeyboardAccessTrusted())")
             if isKeyboardAccessTrusted() { enable() }
@@ -74,6 +81,8 @@ final class SwitcherModel: ObservableObject {
         needsKeyboardAccess = false
         listener.stop()
         restoreSystemAction()
+        restoreSystemIndicator()
+        displayEnabled(false)
         isRunning = false
     }
 
@@ -155,6 +164,7 @@ final class SwitcherModel: ObservableObject {
             needsKeyboardAccess = false
             listener.stop()
             restoreSystemAction()
+            restoreSystemIndicator()
             defaults.set(false, forKey: "fnEnabled")
             statusChanged?()
         }
@@ -177,7 +187,16 @@ final class SwitcherModel: ObservableObject {
         do { try systemAction.takeOver() }
         catch {
             listener.stop()
+            restoreSystemIndicator()
             reportFnFailure()
+            return
+        }
+        do { try systemIndicator.start() }
+        catch {
+            listener.stop()
+            restoreSystemAction()
+            restoreSystemIndicator()
+            reportIndicatorFailure(error)
             return
         }
         notice = nil
@@ -210,6 +229,19 @@ final class SwitcherModel: ObservableObject {
     private func restoreSystemAction() {
         do { try systemAction.restore() }
         catch { reportFnFailure() }
+    }
+
+    private func restoreSystemIndicator() {
+        do { try systemIndicator.restore() }
+        catch { reportIndicatorFailure(error) }
+    }
+
+    private func reportIndicatorFailure(_ error: Error) {
+        displayEnabled(false)
+        noticeIsAccessibility = false
+        notice = "Could not update the system input-source indicator. Fn is off. " + error.localizedDescription
+        log.error("System indicator operation failed; recovery retained when needed: \(error.localizedDescription, privacy: .public)")
+        statusChanged?()
     }
 
     private func reportFnFailure() {
